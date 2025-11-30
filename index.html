@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/2.2.0/encoding.min.js"></script>
 </head>
 <body>
     <div class="container mt-5">
@@ -16,15 +17,73 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title">CSVファイルをアップロード</h5>
-                <p class="card-text">ココナラの売上データCSV（Shift-JIS）を選択してください。</p>
-                <input type="file" id="csvFileInput" class="form-control" accept=".csv">
+                <p class="card-text text-muted mb-3">ココナラの売上データCSV（Shift-JIS）を選択してください。</p>
+
+                <div id="dropZone" class="text-center p-5 border border-2 border-secondary border-dashed rounded bg-light" style="border-style: dashed; cursor: pointer; transition: all 0.3s;">
+                    <div class="mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-cloud-upload text-primary" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M4.406 1.342A5.53 5.53 0 0 1 8 0c2.69 0 4.923 2 5.166 4.579C14.758 4.804 16 6.137 16 7.773 16 9.569 14.502 11 12.687 11H10a.5.5 0 0 1 0-1h2.688C13.979 10 15 8.988 15 7.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 2.825 10.328 1 8 1a4.53 4.53 0 0 0-2.941 1.1c-.757.652-1.153 1.438-1.153 2.055v.448l-.445.049C2.064 4.805 1 5.952 1 7.318 1 8.785 2.23 10 3.781 10H6a.5.5 0 0 1 0 1H3.781C1.708 11 0 9.366 0 7.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383z"/>
+                            <path fill-rule="evenodd" d="M7.646 4.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V14.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                        </svg>
+                    </div>
+                    <h5>ここにファイルをドラッグ＆ドロップ</h5>
+                    <p class="text-muted small">または クリックしてファイルを選択</p>
+                    <input type="file" id="csvFileInput" class="d-none" accept=".csv">
+                </div>
+            </div>
+        </div>
+
+        <div id="filterSection" class="card mb-4" style="display: none;">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">フィルター条件</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-3">
+                        <label for="filterStartDate" class="form-label">開始日</label>
+                        <input type="date" class="form-control" id="filterStartDate">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label for="filterEndDate" class="form-label">終了日</label>
+                        <input type="date" class="form-control" id="filterEndDate">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label for="filterService" class="form-label">サービス名</label>
+                        <select class="form-select" id="filterService">
+                            <option value="">すべて</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label for="filterBreakdown" class="form-label">内訳</label>
+                        <select class="form-select" id="filterBreakdown">
+                            <option value="">すべて</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button id="resetFilters" class="btn btn-outline-secondary btn-sm">リセット</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="exportSection" class="card mb-4" style="display: none;">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">データ出力 (Shift-JIS)</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">現在フィルターされているデータを各種形式でダウンロードできます。</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <button id="btnExportCsv" class="btn btn-primary">CSVダウンロード (Excel用)</button>
+                    <button id="btnExportYayoi" class="btn btn-success">弥生インポート形式</button>
+                    <button id="btnExportFreee" class="btn btn-info text-white">freeeインポート形式</button>
+                </div>
             </div>
         </div>
 
         <div id="dashboard" style="display: none;">
             <!-- Summary Cards -->
             <div class="row mb-4">
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="card text-white bg-primary mb-3">
                         <div class="card-header">総売上金額</div>
                         <div class="card-body">
@@ -32,7 +91,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="card text-white bg-success mb-3">
                         <div class="card-header">総取引件数</div>
                         <div class="card-body">
@@ -40,7 +99,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="card text-white bg-info mb-3">
                         <div class="card-header">平均単価</div>
                         <div class="card-body">
@@ -52,9 +111,18 @@
 
             <!-- Charts -->
             <div class="row mb-4">
-                <div class="col-md-12">
+                <div class="col-12">
                     <div class="card">
-                        <div class="card-header">月別売上推移</div>
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                            <span>売上推移</span>
+                            <div class="d-flex align-items-center mt-2 mt-md-0">
+                                <label for="chartAggregation" class="me-2 text-nowrap">集計単位:</label>
+                                <select id="chartAggregation" class="form-select form-select-sm" style="width: auto;">
+                                    <option value="month">月別</option>
+                                    <option value="day">日別</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="card-body">
                             <canvas id="monthlySalesChart"></canvas>
                         </div>
@@ -63,17 +131,31 @@
             </div>
 
             <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">サービス別売上 (Top 5)</div>
+                <div class="col-12 col-md-6 mb-4 mb-md-0">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                            <span>サービス別売上</span>
+                            <select id="serviceTopN" class="form-select form-select-sm mt-1 mt-md-0" style="width: auto;">
+                                <option value="5">Top 5</option>
+                                <option value="10">Top 10</option>
+                                <option value="20">Top 20</option>
+                            </select>
+                        </div>
                         <div class="card-body">
                             <canvas id="serviceSalesChart"></canvas>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">購入者別売上 (Top 5)</div>
+                <div class="col-12 col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                            <span>購入者別売上</span>
+                            <select id="customerTopN" class="form-select form-select-sm mt-1 mt-md-0" style="width: auto;">
+                                <option value="5">Top 5</option>
+                                <option value="10">Top 10</option>
+                                <option value="20">Top 20</option>
+                            </select>
+                        </div>
                         <div class="card-body">
                             <canvas id="customerSalesChart"></canvas>
                         </div>
@@ -82,11 +164,19 @@
             </div>
 
              <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card">
+                <div class="col-12 col-md-6 mb-4 mb-md-0">
+                    <div class="card h-100">
                         <div class="card-header">売上内訳</div>
                         <div class="card-body">
                             <canvas id="breakdownChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">曜日別売上</div>
+                        <div class="card-body">
+                            <canvas id="dayOfWeekChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -94,7 +184,7 @@
 
             <!-- Detailed Table -->
             <div class="card">
-                <div class="card-header">データ一覧</div>
+                <div class="card-header">データ一覧 (全<span id="filteredCount">0</span>件中 Top 100)</div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped" id="dataTable">
