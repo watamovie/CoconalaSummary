@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/2.2.0/encoding.min.js"></script>
 </head>
 <body>
     <div class="container mt-5">
@@ -21,10 +22,57 @@
             </div>
         </div>
 
+        <div id="filterSection" class="card mb-4" style="display: none;">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">フィルター条件</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-3">
+                        <label for="filterStartDate" class="form-label">開始日</label>
+                        <input type="date" class="form-control" id="filterStartDate">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label for="filterEndDate" class="form-label">終了日</label>
+                        <input type="date" class="form-control" id="filterEndDate">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label for="filterService" class="form-label">サービス名</label>
+                        <select class="form-select" id="filterService">
+                            <option value="">すべて</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label for="filterBreakdown" class="form-label">内訳</label>
+                        <select class="form-select" id="filterBreakdown">
+                            <option value="">すべて</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button id="resetFilters" class="btn btn-outline-secondary btn-sm">リセット</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="exportSection" class="card mb-4" style="display: none;">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">データ出力 (Shift-JIS)</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">現在フィルターされているデータを各種形式でダウンロードできます。</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <button id="btnExportCsv" class="btn btn-primary">CSVダウンロード (Excel用)</button>
+                    <button id="btnExportYayoi" class="btn btn-success">弥生インポート形式</button>
+                    <button id="btnExportFreee" class="btn btn-info text-white">freeeインポート形式</button>
+                </div>
+            </div>
+        </div>
+
         <div id="dashboard" style="display: none;">
             <!-- Summary Cards -->
             <div class="row mb-4">
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="card text-white bg-primary mb-3">
                         <div class="card-header">総売上金額</div>
                         <div class="card-body">
@@ -32,7 +80,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="card text-white bg-success mb-3">
                         <div class="card-header">総取引件数</div>
                         <div class="card-body">
@@ -40,7 +88,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-md-4">
                     <div class="card text-white bg-info mb-3">
                         <div class="card-header">平均単価</div>
                         <div class="card-body">
@@ -52,9 +100,18 @@
 
             <!-- Charts -->
             <div class="row mb-4">
-                <div class="col-md-12">
+                <div class="col-12">
                     <div class="card">
-                        <div class="card-header">月別売上推移</div>
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                            <span>売上推移</span>
+                            <div class="d-flex align-items-center mt-2 mt-md-0">
+                                <label for="chartAggregation" class="me-2 text-nowrap">集計単位:</label>
+                                <select id="chartAggregation" class="form-select form-select-sm" style="width: auto;">
+                                    <option value="month">月別</option>
+                                    <option value="day">日別</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="card-body">
                             <canvas id="monthlySalesChart"></canvas>
                         </div>
@@ -63,17 +120,31 @@
             </div>
 
             <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">サービス別売上 (Top 5)</div>
+                <div class="col-12 col-md-6 mb-4 mb-md-0">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                            <span>サービス別売上</span>
+                            <select id="serviceTopN" class="form-select form-select-sm mt-1 mt-md-0" style="width: auto;">
+                                <option value="5">Top 5</option>
+                                <option value="10">Top 10</option>
+                                <option value="20">Top 20</option>
+                            </select>
+                        </div>
                         <div class="card-body">
                             <canvas id="serviceSalesChart"></canvas>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">購入者別売上 (Top 5)</div>
+                <div class="col-12 col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                            <span>購入者別売上</span>
+                            <select id="customerTopN" class="form-select form-select-sm mt-1 mt-md-0" style="width: auto;">
+                                <option value="5">Top 5</option>
+                                <option value="10">Top 10</option>
+                                <option value="20">Top 20</option>
+                            </select>
+                        </div>
                         <div class="card-body">
                             <canvas id="customerSalesChart"></canvas>
                         </div>
@@ -82,7 +153,7 @@
             </div>
 
              <div class="row mb-4">
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <div class="card">
                         <div class="card-header">売上内訳</div>
                         <div class="card-body">
@@ -94,7 +165,7 @@
 
             <!-- Detailed Table -->
             <div class="card">
-                <div class="card-header">データ一覧</div>
+                <div class="card-header">データ一覧 (全<span id="filteredCount">0</span>件中 Top 100)</div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped" id="dataTable">
