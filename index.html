@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ココナラ売上分析ツール</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">ココナラ売上分析ツール</h1>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">CSVファイルをアップロード</h5>
+                <p class="card-text">ココナラの売上データCSV（Shift-JIS）を選択してください。</p>
+                <input type="file" id="csvFileInput" class="form-control" accept=".csv">
+            </div>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-white bg-primary mb-3">
+                        <div class="card-header">総売上金額</div>
+                        <div class="card-body">
+                            <h3 class="card-title" id="totalRevenue">¥0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-header">総取引件数</div>
+                        <div class="card-body">
+                            <h3 class="card-title" id="totalTransactions">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-info mb-3">
+                        <div class="card-header">平均単価</div>
+                        <div class="card-body">
+                            <h3 class="card-title" id="averagePrice">¥0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">月別売上推移</div>
+                        <div class="card-body">
+                            <canvas id="monthlySalesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">サービス別売上 (Top 5)</div>
+                        <div class="card-body">
+                            <canvas id="serviceSalesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">購入者別売上 (Top 5)</div>
+                        <div class="card-body">
+                            <canvas id="customerSalesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">売上内訳</div>
+                        <div class="card-body">
+                            <canvas id="breakdownChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Table -->
+            <div class="card">
+                <div class="card-header">データ一覧</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>売上確定日</th>
+                                    <th>サービス名</th>
+                                    <th>購入者名</th>
+                                    <th>内訳</th>
+                                    <th>金額</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
