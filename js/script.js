@@ -1,35 +1,103 @@
-document.getElementById('csvFileInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    Papa.parse(file, {
-        header: true,
-        encoding: "Shift-JIS", // Specify encoding for Japanese CSV
-        skipEmptyLines: true,
-        complete: function(results) {
-            console.log("Parsed Results:", results);
-            if (results.errors.length > 0) {
-                console.warn("Errors:", results.errors);
-                // Continue processing even if there are errors, as some might be benign
-            }
-            processData(results.data);
-        },
-        error: function(err) {
-            console.error("Error:", err);
-            alert("ファイルの読み込みに失敗しました。");
-        }
-    });
-});
-
+// Global state
+let allData = [];
 let monthlyChartInstance = null;
 let serviceChartInstance = null;
 let customerChartInstance = null;
 let breakdownChartInstance = null;
+let dayOfWeekChartInstance = null;
+let repeatChartInstance = null;
+let priceDistChartInstance = null;
 
-function processData(data) {
-    // Basic validations and type conversions
-    const cleanData = data.filter(row => row['売上金額'] && row['売上確定日']).map(row => {
-        // Handle potential comma separation in numbers
+// Event Listeners
+document.getElementById('csvFileInput').addEventListener('change', handleFileUpload);
+document.getElementById('filterStartDate').addEventListener('change', updateDashboard);
+document.getElementById('filterEndDate').addEventListener('change', updateDashboard);
+document.getElementById('filterService').addEventListener('change', updateDashboard);
+document.getElementById('filterBreakdown').addEventListener('change', updateDashboard);
+document.getElementById('resetFilters').addEventListener('click', resetFilters);
+document.getElementById('chartAggregation').addEventListener('change', updateDashboard);
+document.getElementById('serviceTopN').addEventListener('change', updateDashboard);
+document.getElementById('customerTopN').addEventListener('change', updateDashboard);
+
+// Export Buttons
+document.getElementById('btnExportCsv').addEventListener('click', () => exportData('original'));
+document.getElementById('btnExportYayoi').addEventListener('click', () => exportData('yayoi'));
+document.getElementById('btnExportFreee').addEventListener('click', () => exportData('freee'));
+
+// Drag and Drop Logic
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('csvFileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('bg-secondary', 'text-white');
+    dropZone.classList.remove('bg-light');
+});
+
+dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('bg-secondary', 'text-white');
+    dropZone.classList.add('bg-light');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('bg-secondary', 'text-white');
+    dropZone.classList.add('bg-light');
+
+    if (e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        parseFile(file);
+    }
+});
+
+function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (file) parseFile(file);
+}
+
+function parseFile(file) {
+    const p = dropZone.querySelector('p.small');
+    if (p) p.textContent = `選択中: ${file.name}`;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const codes = new Uint8Array(e.target.result);
+            const encoding = Encoding.detect(codes);
+            const unicodeString = Encoding.convert(codes, {
+                to: 'UNICODE',
+                from: encoding,
+                type: 'string'
+            });
+
+            Papa.parse(unicodeString, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    console.log("Parsed Results:", results);
+                    if (results.errors.length > 0) {
+                        console.warn("Errors:", results.errors);
+                    }
+                    initDashboard(results.data);
+                },
+                error: function(err) {
+                    console.error("Error:", err);
+                    alert("ファイルの解析に失敗しました。");
+                }
+            });
+        } catch (err) {
+            console.error("File read error:", err);
+            alert("ファイルの読み込み中にエラーが発生しました。");
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function initDashboard(data) {
+    allData = data.filter(row => row['売上金額'] && row['売上確定日']).map(row => {
         const amountStr = String(row['売上金額']).replace(/,/g, '');
         return {
             ...row,
@@ -37,85 +105,234 @@ function processData(data) {
             date: new Date(row['売上確定日']),
             serviceName: row['サービス名'] || '不明',
             customerName: row['購入者名'] || '不明',
+            // Prefer ID if available, fallback to Name
+            customerId: row['購入者ID'] || row['購入者名'] || '不明',
             breakdown: row['内訳'] || 'その他'
         };
     });
 
-    if (cleanData.length === 0) {
+    if (allData.length === 0) {
         alert("有効なデータが見つかりませんでした。");
         return;
     }
 
-    // Sort by date ascending
-    cleanData.sort((a, b) => a.date - b.date);
+    allData.sort((a, b) => a.date - b.date);
+
+    populateFilters(allData);
+
+    document.getElementById('filterSection').style.display = 'block';
+    document.getElementById('exportSection').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'block';
+
+    updateDashboard();
+}
+
+function populateFilters(data) {
+    const services = new Set();
+    const breakdowns = new Set();
+    let minDate = data[0].date;
+    let maxDate = data[data.length - 1].date;
+
+    data.forEach(row => {
+        services.add(row.serviceName);
+        breakdowns.add(row.breakdown);
+        if (row.date < minDate) minDate = row.date;
+        if (row.date > maxDate) maxDate = row.date;
+    });
+
+    const serviceSelect = document.getElementById('filterService');
+    serviceSelect.innerHTML = '<option value="">すべて</option>';
+    Array.from(services).sort().forEach(s => {
+        const option = document.createElement('option');
+        option.value = s;
+        option.textContent = s;
+        serviceSelect.appendChild(option);
+    });
+
+    const breakdownSelect = document.getElementById('filterBreakdown');
+    breakdownSelect.innerHTML = '<option value="">すべて</option>';
+    Array.from(breakdowns).sort().forEach(b => {
+        const option = document.createElement('option');
+        option.value = b;
+        option.textContent = b;
+        breakdownSelect.appendChild(option);
+    });
+}
+
+function resetFilters() {
+    document.getElementById('filterStartDate').value = '';
+    document.getElementById('filterEndDate').value = '';
+    document.getElementById('filterService').value = '';
+    document.getElementById('filterBreakdown').value = '';
+    updateDashboard();
+}
+
+function getFilteredData() {
+    const startDateVal = document.getElementById('filterStartDate').value;
+    const endDateVal = document.getElementById('filterEndDate').value;
+    const serviceVal = document.getElementById('filterService').value;
+    const breakdownVal = document.getElementById('filterBreakdown').value;
+
+    let startDate = null;
+    if (startDateVal) {
+        const parts = startDateVal.split('-');
+        startDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    }
+
+    let endDate = null;
+    if (endDateVal) {
+        const parts = endDateVal.split('-');
+        endDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        endDate.setHours(23, 59, 59, 999);
+    }
+
+    return allData.filter(row => {
+        if (startDate && row.date < startDate) return false;
+        if (endDate && row.date > endDate) return false;
+        if (serviceVal && row.serviceName !== serviceVal) return false;
+        if (breakdownVal && row.breakdown !== breakdownVal) return false;
+        return true;
+    });
+}
+
+function updateDashboard() {
+    const filteredData = getFilteredData();
 
     // 1. Summary Stats
-    const totalRevenue = cleanData.reduce((sum, row) => sum + row.amount, 0);
-    const totalTransactions = cleanData.length;
-    const avgPrice = Math.round(totalRevenue / totalTransactions);
+    const totalRevenue = filteredData.reduce((sum, row) => sum + row.amount, 0);
+    const totalTransactions = filteredData.length;
+    const avgPrice = totalTransactions > 0 ? Math.round(totalRevenue / totalTransactions) : 0;
 
     document.getElementById('totalRevenue').textContent = `¥${totalRevenue.toLocaleString()}`;
     document.getElementById('totalTransactions').textContent = totalTransactions.toLocaleString();
     document.getElementById('averagePrice').textContent = `¥${avgPrice.toLocaleString()}`;
+    document.getElementById('filteredCount').textContent = totalTransactions.toLocaleString();
 
-    // 2. Monthly Sales
-    const monthlySales = {};
-    cleanData.forEach(row => {
-        const monthKey = `${row.date.getFullYear()}/${String(row.date.getMonth() + 1).padStart(2, '0')}`;
-        monthlySales[monthKey] = (monthlySales[monthKey] || 0) + row.amount;
+    // Chart Options
+    const aggregation = document.getElementById('chartAggregation').value;
+    const serviceTopN = parseInt(document.getElementById('serviceTopN').value);
+    const customerTopN = parseInt(document.getElementById('customerTopN').value);
+
+    // --- Data Aggregation ---
+
+    // Trend
+    const trendData = {};
+    filteredData.forEach(row => {
+        let key;
+        if (aggregation === 'month') {
+             key = `${row.date.getFullYear()}/${String(row.date.getMonth() + 1).padStart(2, '0')}`;
+        } else {
+             key = `${row.date.getFullYear()}/${String(row.date.getMonth() + 1).padStart(2, '0')}/${String(row.date.getDate()).padStart(2, '0')}`;
+        }
+        trendData[key] = (trendData[key] || 0) + row.amount;
     });
 
-    // 3. Service Sales
-    const serviceSales = {};
-    cleanData.forEach(row => {
-        serviceSales[row.serviceName] = (serviceSales[row.serviceName] || 0) + row.amount;
+    // Service & Customer & Breakdown
+    const serviceData = {};
+    const customerData = {};
+    const breakdownData = {};
+    filteredData.forEach(row => {
+        serviceData[row.serviceName] = (serviceData[row.serviceName] || 0) + row.amount;
+        customerData[row.customerName] = (customerData[row.customerName] || 0) + row.amount;
+        breakdownData[row.breakdown] = (breakdownData[row.breakdown] || 0) + row.amount;
     });
 
-    // 4. Customer Sales
-    const customerSales = {};
-    cleanData.forEach(row => {
-        customerSales[row.customerName] = (customerSales[row.customerName] || 0) + row.amount;
+    // Day of Week
+    const dayOfWeekData = new Array(7).fill(0);
+    filteredData.forEach(row => {
+        const dayIndex = row.date.getDay();
+        dayOfWeekData[dayIndex] += row.amount;
     });
 
-    // 5. Breakdown Sales
-    const breakdownSales = {};
-    cleanData.forEach(row => {
-        breakdownSales[row.breakdown] = (breakdownSales[row.breakdown] || 0) + row.amount;
+    // Repeat Rate (New vs Repeat)
+    // Needs access to allData to determine if it's a first purchase ever
+    const firstPurchaseDateMap = {};
+    allData.forEach(row => {
+        if (!firstPurchaseDateMap[row.customerId] || row.date < firstPurchaseDateMap[row.customerId]) {
+            firstPurchaseDateMap[row.customerId] = row.date;
+        }
+    });
+
+    let newCount = 0;
+    let repeatCount = 0;
+    filteredData.forEach(row => {
+        const firstDate = firstPurchaseDateMap[row.customerId];
+        // If current row date is strictly after first purchase date, it's a repeat
+        if (row.date > firstDate) {
+            repeatCount++;
+        } else {
+            newCount++;
+        }
+    });
+
+    // Price Distribution (Histogram)
+    const priceRanges = {
+        '~1,000円': 0,
+        '~5,000円': 0,
+        '~10,000円': 0,
+        '~50,000円': 0,
+        '50,001円~': 0
+    };
+
+    filteredData.forEach(row => {
+        if (row.amount <= 1000) priceRanges['~1,000円']++;
+        else if (row.amount <= 5000) priceRanges['~5,000円']++;
+        else if (row.amount <= 10000) priceRanges['~10,000円']++;
+        else if (row.amount <= 50000) priceRanges['~50,000円']++;
+        else priceRanges['50,001円~']++;
     });
 
 
-    renderCharts(monthlySales, serviceSales, customerSales, breakdownSales);
-    renderTable(cleanData);
-    document.getElementById('dashboard').style.display = 'block';
+    renderCharts({
+        trendData, serviceData, customerData, breakdownData, dayOfWeekData,
+        repeatData: { new: newCount, repeat: repeatCount },
+        priceDistData: priceRanges,
+        serviceLimit: serviceTopN,
+        customerLimit: customerTopN,
+        aggregationType: aggregation
+    });
+
+    renderTable(filteredData);
 }
 
-function renderCharts(monthlyData, serviceData, customerData, breakdownData) {
-    // Helper to sort object by value descending
+function renderCharts({ trendData, serviceData, customerData, breakdownData, dayOfWeekData, repeatData, priceDistData, serviceLimit, customerLimit, aggregationType }) {
     const sortObj = (obj) => Object.entries(obj).sort(([,a], [,b]) => b - a);
 
-    // Monthly Chart
-    const monthlyLabels = Object.keys(monthlyData);
-    const monthlyValues = Object.values(monthlyData);
+    // Trend Chart
+    const sortedKeys = Object.keys(trendData).sort();
+    const trendLabels = sortedKeys;
+    const trendValues = sortedKeys.map(k => trendData[k]);
 
     const ctxMonthly = document.getElementById('monthlySalesChart').getContext('2d');
     if (monthlyChartInstance) monthlyChartInstance.destroy();
     monthlyChartInstance = new Chart(ctxMonthly, {
         type: 'line',
         data: {
-            labels: monthlyLabels,
+            labels: trendLabels,
             datasets: [{
                 label: '売上金額',
-                data: monthlyValues,
+                data: trendValues,
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1,
                 fill: false
             }]
         },
-        options: { responsive: true }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: aggregationType === 'month' ? '年月' : '年月日'
+                    }
+                }
+            }
+        }
     });
 
-    // Service Chart (Top 5)
-    const sortedServices = sortObj(serviceData).slice(0, 5);
+    // Service Chart
+    const sortedServices = sortObj(serviceData).slice(0, serviceLimit);
     const ctxService = document.getElementById('serviceSalesChart').getContext('2d');
     if (serviceChartInstance) serviceChartInstance.destroy();
     serviceChartInstance = new Chart(ctxService, {
@@ -130,12 +347,13 @@ function renderCharts(monthlyData, serviceData, customerData, breakdownData) {
         },
         options: {
             indexAxis: 'y',
-            responsive: true
+            responsive: true,
+            maintainAspectRatio: false
         }
     });
 
-    // Customer Chart (Top 5)
-    const sortedCustomers = sortObj(customerData).slice(0, 5);
+    // Customer Chart
+    const sortedCustomers = sortObj(customerData).slice(0, customerLimit);
     const ctxCustomer = document.getElementById('customerSalesChart').getContext('2d');
     if (customerChartInstance) customerChartInstance.destroy();
     customerChartInstance = new Chart(ctxCustomer, {
@@ -150,7 +368,8 @@ function renderCharts(monthlyData, serviceData, customerData, breakdownData) {
         },
         options: {
             indexAxis: 'y',
-            responsive: true
+            responsive: true,
+            maintainAspectRatio: false
         }
     });
 
@@ -170,23 +389,97 @@ function renderCharts(monthlyData, serviceData, customerData, breakdownData) {
                     'rgba(255, 206, 86, 0.6)',
                     'rgba(75, 192, 192, 0.6)',
                     'rgba(153, 102, 255, 0.6)',
+                    'rgba(255, 159, 64, 0.6)',
+                    'rgba(201, 203, 207, 0.6)'
                 ]
             }]
         },
-        options: { responsive: true }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Day of Week Chart
+    const ctxDay = document.getElementById('dayOfWeekChart').getContext('2d');
+    if (dayOfWeekChartInstance) dayOfWeekChartInstance.destroy();
+    dayOfWeekChartInstance = new Chart(ctxDay, {
+        type: 'bar',
+        data: {
+            labels: ['日', '月', '火', '水', '木', '金', '土'],
+            datasets: [{
+                label: '売上金額',
+                data: dayOfWeekData,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 99, 132, 0.6)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Repeat Rate Chart
+    const ctxRepeat = document.getElementById('repeatChart').getContext('2d');
+    if (repeatChartInstance) repeatChartInstance.destroy();
+    repeatChartInstance = new Chart(ctxRepeat, {
+        type: 'doughnut',
+        data: {
+            labels: ['新規', 'リピート'],
+            datasets: [{
+                data: [repeatData.new, repeatData.repeat],
+                backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 159, 64, 0.6)']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Price Distribution Chart
+    const ctxPrice = document.getElementById('priceDistChart').getContext('2d');
+    if (priceDistChartInstance) priceDistChartInstance.destroy();
+    priceDistChartInstance = new Chart(ctxPrice, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(priceDistData),
+            datasets: [{
+                label: '取引件数',
+                data: Object.values(priceDistData),
+                backgroundColor: 'rgba(75, 192, 192, 0.6)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
     });
 }
 
 function renderTable(data) {
     const tbody = document.querySelector('#dataTable tbody');
     tbody.innerHTML = '';
-    // Show top 100 rows to avoid freezing
     data.slice(0, 100).forEach(row => {
         const tr = document.createElement('tr');
+        const dateStr = `${row.date.getFullYear()}/${String(row.date.getMonth() + 1).padStart(2, '0')}/${String(row.date.getDate()).padStart(2, '0')}`;
 
-        // Use textContent for safety against XSS
         const tdDate = document.createElement('td');
-        tdDate.textContent = row['売上確定日'];
+        tdDate.textContent = dateStr;
 
         const tdService = document.createElement('td');
         tdService.textContent = row.serviceName;
@@ -208,4 +501,61 @@ function renderTable(data) {
 
         tbody.appendChild(tr);
     });
+}
+
+function exportData(format) {
+    const data = getFilteredData();
+    if (data.length === 0) {
+        alert("出力するデータがありません。");
+        return;
+    }
+
+    let content = "";
+    let filename = "";
+
+    if (format === 'original') {
+        const header = ['売上確定日', 'サービス名', '購入者名', '内訳', '売上金額'];
+        const rows = data.map(row => {
+            const dateStr = `${row.date.getFullYear()}/${String(row.date.getMonth() + 1).padStart(2, '0')}/${String(row.date.getDate()).padStart(2, '0')}`;
+            return [dateStr, row.serviceName, row.customerName, row.breakdown, row.amount];
+        });
+        content = Papa.unparse({ fields: header, data: rows });
+        filename = "sales_data_filtered.csv";
+
+    } else if (format === 'yayoi') {
+        const rows = data.map(row => {
+            const dateStr = `${row.date.getFullYear()}/${String(row.date.getMonth() + 1).padStart(2, '0')}/${String(row.date.getDate()).padStart(2, '0')}`;
+            const desc = `${row.serviceName} (${row.customerName})`;
+            return [2000, "", "", dateStr, "売掛金", "", "", "", row.amount, "", "売上高", "", "", "", row.amount, "", desc];
+        });
+        content = Papa.unparse(rows, { quotes: true, quoteChar: '"' });
+        filename = "yayoi_import.csv";
+
+    } else if (format === 'freee') {
+        const header = ["発生日", "借方勘定科目", "借方金額", "貸方勘定科目", "貸方金額", "摘要"];
+        const rows = data.map(row => {
+            const dateStr = `${row.date.getFullYear()}-${String(row.date.getMonth() + 1).padStart(2, '0')}-${String(row.date.getDate()).padStart(2, '0')}`;
+            const desc = `${row.serviceName} / ${row.customerName}`;
+            return [dateStr, "売掛金", row.amount, "売上高", row.amount, desc];
+        });
+        content = Papa.unparse({ fields: header, data: rows });
+        filename = "freee_import.csv";
+    }
+
+    downloadCSV(content, filename);
+}
+
+function downloadCSV(csvString, filename) {
+    const unicodeArray = [];
+    for (let i = 0; i < csvString.length; i++) {
+        unicodeArray.push(csvString.charCodeAt(i));
+    }
+    const sjisArray = Encoding.convert(unicodeArray, { to: 'SJIS', from: 'UNICODE' });
+    const blob = new Blob([new Uint8Array(sjisArray)], { type: 'text/csv;charset=Shift-JIS' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }

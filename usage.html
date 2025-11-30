@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使い方ガイド - ココナラ売上分析ツール</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .screenshot {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 1.5rem;
+        }
+        section {
+            margin-bottom: 4rem;
+        }
+        h2 {
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">使い方ガイド</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="index.html">ツールに戻る</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="text-center mb-5">ココナラ売上分析ツールの使い方</h1>
+
+        <!-- Step 1 -->
+        <section id="step1">
+            <h2><span class="step-number">1</span>データの準備</h2>
+            <p>まず、ココナラの管理画面から売上データをダウンロードします。</p>
+            <ol>
+                <li>ココナラにログインし、「売上管理・振込申請」ページにアクセスします。</li>
+                <li>ページ下部にある「売上データCSVダウンロード」ボタンをクリックします。</li>
+                <li>Shift-JIS形式のCSVファイルがダウンロードされます。</li>
+            </ol>
+        </section>
+
+        <!-- Step 2 -->
+        <section id="step2">
+            <h2><span class="step-number">2</span>ファイルの読み込み</h2>
+            <p>本ツールのトップ画面にあるアップロードエリアに、ダウンロードしたCSVファイルをドラッグ＆ドロップします。</p>
+            <div class="text-center">
+                <img src="images/upload_screen.png" alt="アップロード画面" class="screenshot">
+            </div>
+            <p class="text-muted text-center small">※ファイルを選択してアップロードすることも可能です。</p>
+        </section>
+
+        <!-- Step 3 -->
+        <section id="step3">
+            <h2><span class="step-number">3</span>ダッシュボードの活用</h2>
+            <p>読み込みが完了すると、自動的に分析結果が表示されます。画面は4つのタブで構成されています。</p>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>サマリータブ</h4>
+                    <p>総売上、取引件数、平均単価などの主要指標と、時系列の売上推移、新規・リピート割合を確認できます。</p>
+                </div>
+                <div class="col-md-6">
+                    <img src="images/summary_tab.png" alt="サマリータブ" class="screenshot">
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6 order-md-2">
+                    <h4>内訳・詳細タブ</h4>
+                    <p>どのサービスが売れているか、どのお客様からの購入が多いか、オプション等の内訳を確認できます。</p>
+                </div>
+                <div class="col-md-6 order-md-1">
+                    <img src="images/details_tab.png" alt="内訳・詳細タブ" class="screenshot">
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h4>分析タブ</h4>
+                    <p>曜日ごとの売上傾向や、価格帯別の取引分布（ヒストグラム）を確認し、販売戦略に役立てることができます。</p>
+                </div>
+                <div class="col-md-6">
+                    <img src="images/analysis_tab.png" alt="分析タブ" class="screenshot">
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 4 -->
+        <section id="step4">
+            <h2><span class="step-number">4</span>フィルターとデータ出力</h2>
+            <p>画面上部の「フィルター & データ出力」をクリックすると、詳細な操作パネルが開きます。</p>
+            <div class="text-center">
+                <img src="images/filter_export.png" alt="フィルターと出力" class="screenshot">
+            </div>
+            <ul class="mt-3">
+                <li><strong>絞り込み:</strong> 期間、サービス名、内訳でデータを絞り込めます。</li>
+                <li><strong>CSVダウンロード:</strong> 表示中のデータをExcel等で開けるCSV形式で保存します。</li>
+                <li><strong>会計ソフト連携:</strong> 弥生会計やfreeeにインポート可能な形式で出力できます。</li>
+            </ul>
+        </section>
+
+        <div class="text-center my-5">
+            <a href="index.html" class="btn btn-primary btn-lg">ツールを使ってみる</a>
+        </div>
+    </div>
+
+    <footer class="bg-light text-center py-4 mt-5">
+        <div class="container">
+            <p class="text-muted mb-0">Coconala Sales Analysis Tool</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
