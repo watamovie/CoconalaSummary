@@ -3,50 +3,80 @@ import os
 import sys
 import http.server
 import threading
+import random
+import datetime
 from playwright.sync_api import sync_playwright
 
-# Data to write
-csv_content = """売上確定日,売上金額,サービス名,購入者名,内訳
-2025/11/01,5000,Webサイト制作,田中太郎,販売手数料
-2025/11/02,3000,ロゴデザイン,鈴木一郎,システム利用料
-2025/11/03,10000,SEO対策,佐藤花子,振込手数料
-2025/11/04,2000,バナー作成,山田次郎,販売手数料
-2025/11/05,1500,記事執筆,高橋美咲,システム利用料
-2025/11/06,8000,動画編集,伊藤健太,振込手数料
-2025/11/07,4500,翻訳サービス,渡辺直人,販売手数料
-2025/11/08,6000,イラスト作成,山本優子,システム利用料
-2025/11/09,7000,マーケティング相談,中村理恵,振込手数料
-2025/11/10,2500,データ入力,小林正樹,販売手数料
-2025/11/11,3500,キャッチコピー作成,加藤浩二,システム利用料
-2025/11/12,9000,SNS運用代行,吉田麻衣,振込手数料
-2025/11/13,5500,LP制作,佐々木亮,販売手数料
-2025/11/14,4000,名刺デザイン,松本香織,システム利用料
-2025/11/15,12000,ECサイト構築,井上達也,振込手数料
-2025/11/16,1800,画像加工,木村あゆみ,販売手数料
-2025/11/17,3200,音声文字起こし,林修平,システム利用料
-2025/11/18,7500,占い鑑定,清水由美,振込手数料
-2025/11/19,4800,悩み相談,山崎大輔,販売手数料
-2025/11/20,2200,アイコン作成,池田真由美,システム利用料
-2025/11/21,6500,プログラミング指導,橋本健一,振込手数料
-2025/11/22,3800,パワーポイント作成,阿部千尋,販売手数料
-2025/11/23,5200,チラシデザイン,村上隆,システム利用料
-2025/11/24,8500,ブログコンサル,石川さゆり,振込手数料
-2025/11/25,2800,似顔絵作成,中島悟,販売手数料
-2025/11/26,4200,ネーミング,前田敦子,システム利用料
-2025/11/27,9500,オンライン秘書,藤田ニコル,振込手数料
-2025/11/28,5800,YouTubeサムネイル,岡田准一,販売手数料
-2025/11/29,3300,音楽制作,近藤春菜,システム利用料
-2025/11/30,11000,アプリ開発,遠藤憲一,振込手数料
-"""
+# --- Generate Dummy Data ---
+
+services = [
+    "Webサイト制作", "ロゴデザイン", "SEO対策", "バナー作成", "記事執筆",
+    "動画編集", "翻訳サービス", "イラスト作成", "マーケティング相談", "データ入力",
+    "キャッチコピー作成", "SNS運用代行", "LP制作", "名刺デザイン", "ECサイト構築",
+    "画像加工", "音声文字起こし", "占い鑑定", "悩み相談", "アイコン作成",
+    "プログラミング指導", "パワーポイント作成", "チラシデザイン", "ブログコンサル", "似顔絵作成",
+    "ネーミング", "オンライン秘書", "YouTubeサムネイル", "音楽制作", "アプリ開発"
+]
+
+names = [
+    "田中太郎", "鈴木一郎", "佐藤花子", "山田次郎", "高橋美咲", "伊藤健太", "渡辺直人", "山本優子", "中村理恵", "小林正樹",
+    "加藤浩二", "吉田麻衣", "佐々木亮", "松本香織", "井上達也", "木村あゆみ", "林修平", "清水由美", "山崎大輔", "池田真由美",
+    "橋本健一", "阿部千尋", "村上隆", "石川さゆり", "中島悟", "前田敦子", "藤田ニコル", "岡田准一", "近藤春菜", "遠藤憲一",
+    "ユーザーA", "ユーザーB", "ユーザーC", "ユーザーD", "ユーザーE"
+]
+
+breakdowns = ["販売手数料", "システム利用料", "振込手数料", "基本料金", "オプション支払い", "おひねり(追加支払い)"]
+
+# Generate dates from July 1, 2025 to Nov 30, 2025
+start_date = datetime.date(2025, 7, 1)
+end_date = datetime.date(2025, 11, 30)
+delta = end_date - start_date
+
+data_rows = []
+for i in range(delta.days + 1):
+    current_date = start_date + datetime.timedelta(days=i)
+    # Random number of transactions per day (0 to 5)
+    num_transactions = random.randint(0, 5)
+
+    # Increase transactions on weekends
+    if current_date.weekday() >= 5: # Sat, Sun
+        num_transactions += random.randint(1, 3)
+
+    for _ in range(num_transactions):
+        service = random.choice(services)
+        name = random.choice(names)
+        breakdown = random.choice(breakdowns)
+
+        # Amount varies by service loosely
+        base_amount = random.randint(1, 100) * 100
+        if "制作" in service or "構築" in service or "開発" in service:
+            base_amount += random.randint(50, 500) * 100
+
+        amount = base_amount
+
+        # Format date as YYYY/MM/DD
+        date_str = current_date.strftime("%Y/%m/%d")
+
+        # ID is optional but helps with unique identification
+        user_id = str(names.index(name) + 1000)
+
+        # CSV format: 売上確定日,売上金額,サービス名,購入者名,内訳,購入者ID
+        # Note: Added Purchase ID for better repeat tracking if script uses it
+        data_rows.append(f"{date_str},{amount},{service},{name},{breakdown},{user_id}")
+
+csv_header = "売上確定日,売上金額,サービス名,購入者名,内訳,購入者ID"
+csv_content = csv_header + "\n" + "\n".join(data_rows)
 
 # Write CSV with Shift-JIS
 with open("dummy_data.csv", "w", encoding="shift_jis") as f:
     f.write(csv_content)
 
-print("Created dummy_data.csv")
+print(f"Created dummy_data.csv with {len(data_rows)} rows.")
+
+# --- Screenshot Logic ---
 
 # Start server
-PORT = 8080
+PORT = 8081 # Changed port to avoid conflict
 def run_server():
     os.chdir('.')
     handler = http.server.SimpleHTTPRequestHandler
@@ -61,14 +91,13 @@ with sync_playwright() as p:
     # Use Japanese locale
     context = browser.new_context(locale='ja-JP')
     page = context.new_page()
-    page.set_viewport_size({"width": 1280, "height": 1200}) # Taller height to capture full tabs
+    page.set_viewport_size({"width": 1280, "height": 1200})
 
     # 1. Load page
     page.goto(f'http://localhost:{PORT}/index.html')
     time.sleep(2)
 
     # Screenshot Upload Screen (before upload)
-    # Scroll to dropZone
     page.locator("#dropZone").scroll_into_view_if_needed()
     time.sleep(0.5)
     page.screenshot(path="images/upload_screen.png")
@@ -82,11 +111,9 @@ with sync_playwright() as p:
 
     # Wait for dashboard to appear
     page.wait_for_selector("#dashboard", state="visible")
-    time.sleep(2) # wait for charts animation
+    time.sleep(3) # wait for charts animation
 
     # 3. Screenshot Summary Tab
-    # It is active by default.
-    # We capture the content of the tab
     summary_tab = page.locator("#summary")
     summary_tab.scroll_into_view_if_needed()
     time.sleep(0.5)
@@ -95,7 +122,7 @@ with sync_playwright() as p:
 
     # 4. Screenshot Details Tab
     page.click("#details-tab")
-    time.sleep(2) # wait for tab switch and chart animation
+    time.sleep(2)
     details_tab = page.locator("#details")
     details_tab.scroll_into_view_if_needed()
     time.sleep(0.5)
@@ -112,12 +139,9 @@ with sync_playwright() as p:
     print("Saved images/analysis_tab.png")
 
     # 6. Screenshot Filter & Export
-    # Expand accordion if not already (it is "show" class by default in HTML)
-    # Scroll to top to see filter section
+    # Scroll to top
     page.evaluate("window.scrollTo(0, 0)")
     time.sleep(0.5)
-    # The usage guide shows the filter section.
-    # I will screenshot the accordion item.
     page.locator("#controlsAccordion").screenshot(path="images/filter_export.png")
     print("Saved images/filter_export.png")
 
