@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        .asset-container {
+            margin-bottom: 20px;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ICON: 512x512 */
+        #site_icon {
+            width: 512px;
+            height: 512px;
+            background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+            border-radius: 64px; /* Squircle */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        #site_icon i {
+            font-size: 240px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        #site_icon span {
+            font-size: 40px;
+            font-weight: 900;
+            margin-top: -20px;
+            text-transform: uppercase;
+        }
+
+        /* THUMBNAIL COMMON */
+        .thumb {
+            width: 1200px;
+            height: 630px; /* standard OGP height is often 630, but request asked for 16:9 which is 675. I'll use 1200x675 */
+            height: 675px;
+            position: relative;
+        }
+
+        /* PATTERN 1: Clean/Minimal */
+        #thumb_clean {
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ddd;
+        }
+        #thumb_clean .bg-shape {
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 150%;
+            background: #fff3cd;
+            transform: rotate(-15deg);
+            z-index: 0;
+            border-radius: 50%;
+        }
+        #thumb_clean .content {
+            z-index: 1;
+            text-align: center;
+        }
+        #thumb_clean h1 {
+            font-size: 80px;
+            font-weight: 900;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        #thumb_clean h1 span {
+            color: #fd7e14;
+        }
+        #thumb_clean p {
+            font-size: 36px;
+            color: #666;
+            background: #f8f9fa;
+            padding: 10px 30px;
+            border-radius: 50px;
+            display: inline-block;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* PATTERN 2: Dark/Data */
+        #thumb_dark {
+            background: #212529;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 80px;
+            overflow: hidden;
+        }
+        #thumb_dark .text-area {
+            flex: 1;
+            z-index: 2;
+        }
+        #thumb_dark h1 {
+            font-size: 72px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        #thumb_dark .highlight {
+            color: #20c997; /* Teal */
+        }
+        #thumb_dark .chart-viz {
+            position: absolute;
+            right: 50px;
+            bottom: -50px;
+            width: 600px;
+            height: 500px;
+            opacity: 0.8;
+            background: repeating-linear-gradient(
+                45deg,
+                #2c3034,
+                #2c3034 10px,
+                #343a40 10px,
+                #343a40 20px
+            );
+            border-radius: 20px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 20px;
+        }
+        .bar {
+            width: 15%;
+            background: linear-gradient(to top, #20c997, #6610f2);
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 0 20px rgba(32, 201, 151, 0.5);
+        }
+
+        /* PATTERN 3: Feature/Vibrant */
+        #thumb_feature {
+            background: linear-gradient(120deg, #fd7e14 0%, #ff922b 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        #thumb_feature::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(white 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.1;
+        }
+        #thumb_feature .card-glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 50px 80px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        #thumb_feature h1 {
+            font-size: 64px;
+            font-weight: 900;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        #thumb_feature .badges {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        #thumb_feature .badge-pill {
+            background: white;
+            color: #fd7e14;
+            font-size: 24px;
+            font-weight: 700;
+            padding: 10px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Site Icon -->
+    <div id="site_icon" class="asset-container">
+        <i class="bi bi-bar-chart-fill"></i>
+    </div>
+
+    <br>
+
+    <!-- Thumbnail 1: Clean -->
+    <div id="thumb_clean" class="thumb asset-container">
+        <div class="bg-shape"></div>
+        <div class="content">
+            <h1><span>ココナラ</span>売上分析ツール</h1>
+            <p><i class="bi bi-check-circle-fill text-success"></i> 売上・推移・リピート率を可視化</p>
+        </div>
+    </div>
+
+    <br>
+
+    <!-- Thumbnail 2: Dark -->
+    <div id="thumb_dark" class="thumb asset-container">
+        <div class="text-area">
+            <h1>データで見る<br><span class="highlight">販売実績</span></h1>
+            <p class="lead mt-4 text-light">CSVファイルをアップロードするだけで<br>詳細な分析レポートを即座に生成。</p>
+        </div>
+        <div class="chart-viz">
+            <div class="bar" style="height: 40%;"></div>
+            <div class="bar" style="height: 70%;"></div>
+            <div class="bar" style="height: 55%;"></div>
+            <div class="bar" style="height: 90%;"></div>
+            <div class="bar" style="height: 65%;"></div>
+        </div>
+    </div>
+
+    <br>
+
+    <!-- Thumbnail 3: Feature -->
+    <div id="thumb_feature" class="thumb asset-container">
+        <div class="card-glass">
+            <h1>Coconala Sales Analyzer</h1>
+            <div class="badges">
+                <span class="badge-pill"><i class="bi bi-filetype-csv"></i> CSV Import</span>
+                <span class="badge-pill"><i class="bi bi-shield-check"></i> Privacy Safe</span>
+                <span class="badge-pill"><i class="bi bi-graph-up"></i> Visual Reports</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
