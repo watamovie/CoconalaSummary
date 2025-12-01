@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ココナラ売上分析ツール - 製品紹介</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        .hero-section {
+            background-color: #0d6efd;
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 3rem;
+            color: #0d6efd;
+            margin-bottom: 1rem;
+        }
+        .screenshot-card img {
+            width: 100%;
+            height: auto;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">ココナラ売上分析ツール</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#features">特徴</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#analysis">分析機能</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#export">連携</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#usage">使い方</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-primary text-white px-3 ms-2" href="index.html">ツールを開く</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-section">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">ココナラの売上を一瞬で可視化</h1>
+            <p class="lead mb-4">面倒な集計作業は不要。CSVをドラッグ＆ドロップするだけで、<br class="d-none d-md-block">あなたのビジネス状況を詳しく分析できます。</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="index.html" class="btn btn-light btn-lg text-primary fw-bold">今すぐ試す</a>
+                <a href="#features" class="btn btn-outline-light btn-lg">詳しく見る</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5 fw-bold">このツールの3つの特徴</h2>
+            <div class="row g-4 text-center">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm p-4">
+                        <div class="feature-icon"><i class="bi bi-phone"></i></div>
+                        <h3 class="h4 fw-bold">スマホ・PC完全対応</h3>
+                        <p class="text-muted">外出先でもスマホからサクッと売上チェック。レスポンシブデザインでどのデバイスでも快適に使えます。</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm p-4">
+                        <div class="feature-icon"><i class="bi bi-shield-lock"></i></div>
+                        <h3 class="h4 fw-bold">安心のローカル処理</h3>
+                        <p class="text-muted">アップロードしたCSVファイルは、ブラウザ内でのみ処理されます。外部サーバーには一切送信されないため、セキュリティも安心です。</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm p-4">
+                        <div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                        <h3 class="h4 fw-bold">強力な分析機能</h3>
+                        <p class="text-muted">売上推移、サービス別、購入者別など、多角的な視点でデータを分析。次のビジネス戦略に役立ちます。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analysis Details -->
+    <section id="analysis" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5 fw-bold">詳細な分析で見える化</h2>
+
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <img src="images/summary_tab.png" alt="サマリー画面" class="img-fluid rounded shadow">
+                </div>
+                <div class="col-lg-6">
+                    <h3 class="h4 fw-bold mb-3"><i class="bi bi-speedometer2 text-primary"></i> 経営状況を一目で把握</h3>
+                    <p>総売上、取引件数、平均単価などの重要指標を即座に表示。月別・日別の売上推移グラフで、成長トレンドを直感的に理解できます。リピーターの割合もグラフで確認可能です。</p>
+                </div>
+            </div>
+
+            <div class="row align-items-center mb-5 flex-lg-row-reverse">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <img src="images/details_tab.png" alt="詳細画面" class="img-fluid rounded shadow">
+                </div>
+                <div class="col-lg-6">
+                    <h3 class="h4 fw-bold mb-3"><i class="bi bi-pie-chart text-primary"></i> 売れ筋サービスを発掘</h3>
+                    <p>どのサービスが一番売れているか、どのお客様が一番購入してくれているかをランキング形式で表示。注力すべきポイントが明確になります。</p>
+                </div>
+            </div>
+
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <img src="images/analysis_tab.png" alt="分析画面" class="img-fluid rounded shadow">
+                </div>
+                <div class="col-lg-6">
+                    <h3 class="h4 fw-bold mb-3"><i class="bi bi-bar-chart text-primary"></i> 傾向を深掘り</h3>
+                    <p>「何曜日に売れやすいか？」「どの価格帯が人気か？」といった細かい傾向を分析。出品タイミングの調整や価格設定の参考に最適です。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Export -->
+    <section id="export" class="py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 order-md-2">
+                    <img src="images/filter_export.png" alt="データ出力" class="img-fluid rounded shadow">
+                </div>
+                <div class="col-md-6 order-md-1">
+                    <h2 class="fw-bold mb-4">確定申告もスムーズに</h2>
+                    <p class="lead">面倒な帳簿付けを効率化します。</p>
+                    <ul class="list-unstyled">
+                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>弥生会計インポート形式</strong>で出力可能</li>
+                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>freeeインポート形式</strong>で出力可能</li>
+                        <li class="mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Excelで編集しやすいCSV形式でも保存可能</li>
+                    </ul>
+                    <p class="text-muted mt-4">※出力データはShift-JISエンコーディングで、日本語環境のExcelでも文字化けしません。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Usage Link -->
+    <section id="usage" class="py-5 bg-light text-center">
+        <div class="container">
+            <h2 class="fw-bold mb-4">使い方はとても簡単</h2>
+            <p class="mb-4">ココナラの管理画面からダウンロードしたCSVを入れるだけ。</p>
+            <a href="usage.html" class="btn btn-outline-primary btn-lg" target="_blank">詳しい使い方ガイドを見る <i class="bi bi-box-arrow-up-right"></i></a>
+        </div>
+    </section>
+
+    <!-- Paid Link Placeholder -->
+    <section class="py-5 bg-dark text-white text-center">
+        <div class="container">
+            <h2 class="fw-bold mb-3">このツールを手に入れる</h2>
+            <p class="lead mb-4">ココナラでのコンテンツ販売を強力にサポートします。</p>
+
+            <div class="p-4 border border-secondary rounded bg-secondary bg-opacity-25 d-inline-block">
+                <p class="mb-2"><strong>Webアプリへのアクセスはこちら</strong></p>
+                <p class="text-muted small mb-3">（※購入者限定エリア）</p>
+                <a href="#" class="btn btn-warning btn-lg fw-bold px-5 disabled">ツールを開く</a>
+                <p class="mt-2 small text-warning">※ここに有料部分のリンクが入ります</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-light py-4 border-top">
+        <div class="container text-center text-muted">
+            <p class="mb-0">&copy; 2025 Coconala Sales Analysis Tool</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
